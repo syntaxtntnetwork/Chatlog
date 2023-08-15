@@ -1,0 +1,6 @@
+RewriteEngine On
+RewriteRule ^/$ index.php [L]
+
+# SETUP
+RewriteRule ^setup$ setup/index.php [L]
+
