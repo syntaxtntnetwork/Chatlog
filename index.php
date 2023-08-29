@@ -22,32 +22,60 @@ if(file_exists("application/database/mysql.php")){
 </head>
 <body>
 <?php
+require "application/database/mysqldriver.php";
 $name = 'TntTastisch';
 $server = 'Test-1';
 $imageUrl = "https://cravatar.eu/avatar/{$name}/128.png";
+$message = "Es wurde kein Code eingeben...";
+$code = null;
+checkConnection();
+if(isset($_GET["submit"])) {
+    if(isset($_POST["code"]) && (!isset($_GET["code"]))) {
+        ?>  <meta http-equiv="refresh" content="0; URL=?submit=1&code=<?php echo $_POST["code"]; ?>"> <?php
+    }
+
+    if(isset($_GET["code"])) {
+        if(strlen($_GET["code"]) === 0) {
+            $message = "Dieser Code ist ungültig!";
+            die();
+        }
+        if(isset($_POST["code"])) {
+            $code = $_POST["code"];
+        } else {
+            $code = $_GET["code"];
+        }
+    } else {
+        $message = "Dieser Code wurde nicht gefunden...";
+    }
+}
 ?>
 <div class="container">
     <div class="row">
 
         <section class="discussions">
-            <div class="photo" style="background-image:url(https://cdni.syntaxtnt.de/images/9nbP138OZq4m7052NUBHMIL6pdJSWEkI.png);"></div>
             <div class="discussion search">
                 <div class="searchbar">
                     <i class="fa fa-search" aria-hidden="true"></i>
-                    <form method="post" action="">
-                        <input type="text" placeholder="Search..." />
+                    <form method="post" action="?submit=1">
+                        <input type="text" name="code" id="code" placeholder="Suchen..." />
                     </form>
                 </div>
             </div>
 
             <div class="discussion message">
                 <div class="desc-contact">
-                    <a style="font-size:18px;" class="name" href="http://syntaxtnt.de/"><p>Start</p></a>
+                    <a style="font-size:24px;" class="name" href="http://syntaxtnt.de/">Start</a>
+                </div>
+            </div>
+
+            <div class="discussion message">
+                <div class="desc-contact">
+                    <a style="font-size:24px;" class="name" href="http://forum.syntaxtnt.de/">Forum</a>
                 </div>
             </div>
         </section>
         <section class="chat">
-            <?php if(isset($_SESSION['code'])) { ?>
+            <?php if(isset($code)) { ?>
             <div class="header-chat">
                 <p class="name">
                     <i class="icon fa fa-server" aria-hidden="true"></i> <strong>Server</strong> <?php echo $server; ?>
@@ -74,7 +102,7 @@ $imageUrl = "https://cravatar.eu/avatar/{$name}/128.png";
             </div>
             <?php } else {
             ?> <div class="header-chat">
-                <p class="name">Es wurde kein Code eingeben...</p><?php
+                <p class="name"><?php echo $message; ?></p><?php
             } ?>
         </section>
     </div>

@@ -32,7 +32,7 @@ if (isset($parsedUrl['query'])) {
         switch($step) {
             case '1':
                 $_SESSION['error'] = false;
-                $_SESSION['message'] = 'Wir übernehmen die Einrichtung von allem...';
+                $_SESSION['message'] = 'Wir übernehmen die Einrichtung...';
                 $message = null;
                 $error = false;
                 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -121,18 +121,20 @@ if (isset($parsedUrl['query'])) {
                         if(isset($host) && isset($port) && isset($dbname) && isset($dbuser) && isset($dbpasswd)) {
                             try {
                                 $mysqlFile = fopen($filePath, "w");
-                                fwrite($mysqlFile, '<?php
-                                    $host = "' . $host . '";
-                                    $port = "' . $port . '";
-                                    $db = "' . $dbname . '";
-                                    $user = "' . $dbuser . '";
-                                    $password = "' . $dbpasswd . '";
-                                    try {
-                                    $mysql = new PDO("mysql:host=$host:$port;dbname=$name", $user, $password);
-                                    } catch (PDOException $e){
-                                    $e->getMessage();
-                                    }
-                                    ?>');
+                                fwrite($mysqlFile, '
+<?php
+$host = "' . $host . '";
+$port = "' . $port . '";
+$db = "' . $dbname . '";
+$user = "' . $dbuser . '";
+$password = "' . $dbpasswd . '";
+try {
+    $mysql = new PDO("mysql:host=$host:$port;dbname=$db", $user, $password);
+    $mysql->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    echo "Verbindungsfehler: " . $e->getMessage();
+}
+?>');
                                 fclose($mysqlFile);
                             } catch (Exception $exception) {
                                 $_SESSION['error'] = true;

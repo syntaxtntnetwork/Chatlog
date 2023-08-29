@@ -90,6 +90,15 @@ body {
     cursor: pointer;
 }
 
+a {
+    text-decoration: none;
+    text-align: center;
+    justify-content: center;
+}
+a:hover {
+    text-decoration: underline;
+}
+
 .discussions .search .searchbar input {
     margin-left: 15px;
     height:38px;
