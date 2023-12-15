@@ -23,45 +23,57 @@ if(file_exists("application/database/mysql.php")){
 <body>
 <?php
 require "application/database/mysqldriver.php";
-$name = 'TntTastisch';
-$server = 'Test-1';
-$imageUrl = "https://cravatar.eu/avatar/{$name}/128.png";
-$message = "Es wurde kein Code eingeben...";
+$name = '';
+$server = '';
+$message = 'Es wurde kein Code eingegeben...';
 $code = null;
-checkConnection();
-if(isset($_GET["submit"])) {
-    if(isset($_POST["code"]) && (!isset($_GET["code"]))) {
-        ?>  <meta http-equiv="refresh" content="0; URL=?submit=1&code=<?php echo $_POST["code"]; ?>"> <?php
-    }
+$error = false;
+$messageInput = "";
 
-    if(isset($_GET["code"])) {
-        if(strlen($_GET["code"]) === 0) {
+if (checkConnection()) {
+    if (isset($_GET["code"])) {
+        if (strlen($_GET["code"]) === 0 || getContent($_GET["code"]) === null) {
             $message = "Dieser Code ist ungültig!";
-            die();
-        }
-        if(isset($_POST["code"])) {
-            $code = $_POST["code"];
+            $error = true;
         } else {
             $code = $_GET["code"];
+            $error = false;
+
+            $content = getContent($code);
+            $decodedMessages = json_decode($content["MESSAGES"], true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                foreach ($decodedMessages as $message) {
+                    $server = $message['server'];
+                    $name = $message['name'];
+                    $messageInput .= "
+<div class='message'>
+    <div class='photo' style='background-image: url(https://cravatar.eu/avatar/" . $message['name'] . "/128.png);'>
+    </div>
+    <p class='text'>" . $message['message'] . "</p>
+</div>
+<p class='time'>" . $message['timestamp'] . " | " . $message["server"] . "</p>
+";
+                }
+            } else {
+                $message = "Dieser Code ist ungültig!";
+                $error = true;
+            }
         }
     } else {
         $message = "Dieser Code wurde nicht gefunden...";
+        $error = true;
     }
+} else {
+    die("An error occurred while trying to catch connection to the database...");
 }
+
 ?>
+
 <div class="container">
     <div class="row">
 
         <section class="discussions">
-            <div class="discussion search">
-                <div class="searchbar">
-                    <i class="fa fa-search" aria-hidden="true"></i>
-                    <form method="post" action="?submit=1">
-                        <input type="text" name="code" id="code" placeholder="Suchen..." />
-                    </form>
-                </div>
-            </div>
-
             <div class="discussion message">
                 <div class="desc-contact">
                     <a style="font-size:24px;" class="name" href="http://syntaxtnt.de/">Start</a>
@@ -75,35 +87,20 @@ if(isset($_GET["submit"])) {
             </div>
         </section>
         <section class="chat">
-            <?php if(isset($code)) { ?>
-            <div class="header-chat">
-                <p class="name">
-                    <i class="icon fa fa-server" aria-hidden="true"></i> <strong>Server</strong> <?php echo $server; ?>
-                </p>
-                <p class="name">
-                    <i class="icon fa fa-user-o" aria-hidden="true"></i> <strong>User</strong>  <?php echo $name; ?>
-                </p>
-            </div>
-            <div class="messages-chat">
-                <div class="message">
-                    <div class="photo"
-                         style="background-image: url(<?php echo $imageUrl; ?>);">
-                    </div>
-                    <p class="text"> Ich bin Heilfroh </p>
+            <?php if (!$error) { ?>
+                <div class="header-chat">
+                    <p class="name">
+                        <i class="icon fa fa-user-o" aria-hidden="true"></i> <strong>User</strong> <?php echo $name; ?>
+                    </p>
                 </div>
-                <p class="time"> 27.08.2023 13:26</p>
-                <div class="message">
-                    <div class="photo"
-                         style="background-image: url(<?php echo $imageUrl; ?>);">
-                    </div>
-                    <p class="text"> Reichserde & Heildünger </p>
+                <div class="messages-chat">
+                    <?php echo $messageInput; ?>
                 </div>
-                <p class="time"> 27.08.2023 13:29</p>
-            </div>
-            <?php } else {
-            ?> <div class="header-chat">
-                <p class="name"><?php echo $message; ?></p><?php
-            } ?>
+            <?php } else { ?>
+                <div class="header-chat">
+                    <p class="name"><?php echo $message; ?></p>
+                </div>
+            <?php } ?>
         </section>
     </div>
 </div>
